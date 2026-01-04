@@ -1,0 +1,132 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+require('dotenv').config();
+
+// Import route modules
+const aiRoutes = require('./routes/ai');
+const webSummaryRoutes = require('./routes/web-summary');
+const notesRoutes = require('./routes/notes');
+const monitoringRoutes = require('./routes/monitoring');
+
+// Import security middleware
+const { 
+  validateApiKey, 
+  requestMonitor, 
+  validateContent, 
+  dailyQuotaCheck,
+  securityHeaders 
+} = require('./middleware/security');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(helmet()); // Security headers
+
+// Configure CORS properly
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',') 
+    : true, // Allow all in development
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
+};
+app.use(cors(corsOptions));
+
+// Strict request size limits
+app.use(express.json({ 
+  limit: '1mb', // Reduced from 10mb
+  strict: true
+}));
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '1mb' 
+}));
+app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting - Reasonable limits for different endpoint types
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // General endpoints - back to original
+  message: { error: 'Too many requests', message: 'Please try again later', retryAfter: 900 },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // AI endpoints - reasonable limit
+  message: { error: 'AI quota exceeded', message: 'AI requests limited to 50 per 15 minutes', retryAfter: 900 },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const webSummaryLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // Web scraping endpoints
+  message: { error: 'Web summary quota exceeded', message: 'Limited to 30 web summaries per 15 minutes', retryAfter: 900 },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/', generalLimiter);
+app.use('/api/ai', aiLimiter);
+app.use('/api/web-summary', webSummaryLimiter);
+
+// Security middleware
+app.use(securityHeaders);
+app.use(requestMonitor);
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Note-taking backend is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// API Routes with essential security
+app.use('/api/ai', validateContent, aiRoutes); // NVIDIA key secured in environment
+app.use('/api/web-summary', validateContent, webSummaryRoutes); // No extra auth needed
+app.use('/api/notes', validateContent, notesRoutes); // Firebase auth handles this
+app.use('/api/monitoring', validateApiKey, monitoringRoutes); // Admin only
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Not Found',
+    message: 'The requested endpoint does not exist'
+  });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// Start server
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
+
+module.exports = app;
