@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclair AI Test Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .response-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 150px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+            display: none;
+        }
+        
+        .response-box.active {
+            display: block;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .api-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .api-info code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Eclair AI Test Client</h1>
+        <p class="subtitle">Testing your backend API at: <strong>https://eclair-b7zo.vercel.app</strong></p>
+        
+        <div id="statusMessage" class="status info">
+            Ready to test AI chat! Type a message below.
+        </div>
+        
+        <div class="api-info">
+            <strong>📡 API Endpoint:</strong> <code>POST /api/ai/chat</code><br>
+            <strong>🔑 Authentication:</strong> None required (API key secured on server)<br>
+            <strong>⚡ Features:</strong> Streaming response, automatic <code>&lt;think&gt;</code> block removal
+        </div>
+        
+        <div class="input-group">
+            <label for="promptInput">Your Message:</label>
+            <textarea 
+                id="promptInput" 
+                placeholder="e.g., Tell me about quantum computing, Write a haiku about programming, Explain AI in simple terms..."
+            >Hello! Can you tell me a fun fact about AI?</textarea>
+        </div>
+        
+        <button id="sendButton" onclick="sendMessage()">
+            Send Message to AI
+        </button>
+        
+        <div id="responseBox" class="response-box"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://eclair-b7zo.vercel.app';
+        
+        async function sendMessage() {
+            const promptInput = document.getElementById('promptInput');
+            const sendButton = document.getElementById('sendButton');
+            const responseBox = document.getElementById('responseBox');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            const prompt = promptInput.value.trim();
+            
+            if (!prompt) {
+                showStatus('Please enter a message!', 'error');
+                return;
+            }
+            
+            // Disable input and show loading
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span class="loading"></span> Sending to AI...';
+            responseBox.textContent = 'Waiting for AI response...';
+            responseBox.classList.add('active');
+            showStatus('Connecting to AI...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/ai/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        temperature: 0.7,
+                        max_tokens: 2048
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Handle streaming response
+                showStatus('Receiving AI response (streaming)...', 'info');
+                responseBox.textContent = '';
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullResponse = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                // Stream content as it arrives
+                                if (data.content) {
+                                    fullResponse += data.content;
+                                    responseBox.textContent = fullResponse;
+                                    responseBox.scrollTop = responseBox.scrollHeight;
+                                }
+                                
+                                // Final cleaned response
+                                if (data.finished) {
+                                    responseBox.textContent = data.fullResponse || fullResponse;
+                                    showStatus('✅ Response received successfully!', 'success');
+                                }
+                                
+                                // Handle errors
+                                if (data.error) {
+                                    throw new Error(data.message || 'AI service error');
+                                }
+                            } catch (parseError) {
+                                console.warn('Could not parse chunk:', line);
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                responseBox.textContent = `❌ Error: ${error.message}`;
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                sendButton.disabled = false;
+                sendButton.innerHTML = 'Send Message to AI';
+            }
+        }
+        
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status ${type}`;
+        }
+        
+        // Allow Enter key to send (with Shift+Enter for new line)
+        document.getElementById('promptInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Test connection on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/`);
+                const data = await response.json();
+                if (data.status === 'ok') {
+                    showStatus(`✅ Backend is online! Server time: ${new Date(data.timestamp).toLocaleString()}`, 'success');
+                }
+            } catch (error) {
+                showStatus('⚠️ Could not connect to backend. Please check the URL.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

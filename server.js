@@ -27,9 +27,23 @@ app.use(helmet()); // Security headers
 
 // Configure CORS properly
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',') 
-    : true, // Allow all in development
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, or direct file:// access)
+    if (!origin) return callback(null, true);
+    
+    // In production, check against allowed origins
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOWED_ORIGINS) {
+      const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    } else {
+      // In development or if no ALLOWED_ORIGINS set, allow all
+      callback(null, true);
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
