@@ -105,10 +105,12 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Firebase
+# Firebase - SENSITIVE FILES!
 firebase-debug.log
 firebase-debug.*.log
 .firebase/
+*firebase-adminsdk*.json
+eclair-e2b3e-firebase-adminsdk-fbsvc-d4f09f81cf.json
 
 # Vercel
 .vercel
