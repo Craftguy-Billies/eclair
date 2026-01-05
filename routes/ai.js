@@ -74,6 +74,63 @@ router.post('/chat', async (req, res) => {
   }
 });
 
+// POST /api/ai/chat-fast - Fast chat with Llama 3.3 70B (no thinking model)
+router.post('/chat-fast', async (req, res) => {
+  try {
+    const { prompt, temperature = 0.2, max_tokens = 1024 } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ 
+        error: 'Prompt is required',
+        message: 'Please provide a prompt in the request body'
+      });
+    }
+
+    // Add concise instruction to prompt
+    const concisePrompt = `${prompt}\n\n(Reply concisely)`;
+
+    // Set response headers for streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const completion = await client.chat.completions.create({
+      model: "meta/llama-3.3-70b-instruct",
+      messages: [{ role: "user", content: concisePrompt }],
+      temperature: parseFloat(temperature),
+      top_p: 0.7,
+      max_tokens: parseInt(max_tokens),
+      stream: true
+    });
+
+    for await (const chunk of completion) {
+      if (chunk.choices[0]?.delta?.content) {
+        const content = chunk.choices[0].delta.content;
+        
+        // Send chunk to client
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+    }
+
+    res.write(`data: ${JSON.stringify({ finished: true })}\n\n`);
+    res.end();
+
+  } catch (error) {
+    console.error('AI Chat Fast Error:', error);
+    
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'AI service error',
+        message: error.message || 'Failed to generate response'
+      });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: 'AI service error', message: error.message })}\n\n`);
+      res.end();
+    }
+  }
+});
+
 // POST /api/ai/generate-note - Generate or expand notes
 router.post('/generate-note', async (req, res) => {
   try {

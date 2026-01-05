@@ -187,6 +187,8 @@
         }
 
         input[type="text"],
+        input[type="url"],
+        select,
         textarea {
             width: 100%;
             padding: 12px 16px;
@@ -194,9 +196,11 @@
             border-radius: 10px;
             font-size: 1rem;
             transition: border 0.3s;
+            font-family: inherit;
         }
 
         input:focus,
+        select:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
@@ -205,6 +209,41 @@
         textarea {
             resize: vertical;
             min-height: 100px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            min-height: 120px;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .test-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .test-box h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1rem;
         }
 
         .workspace-list,
@@ -367,25 +406,72 @@
 
         <!-- Step 3: Custom Input Test -->
         <div class="section hidden" id="customTestSection">
-            <h2>✏️ Step 2: Custom API Test</h2>
-            <p style="color: #666; margin-bottom: 15px;">Try your own prompts and test individual endpoints</p>
+            <h2>✏️ Step 2: Test API Endpoints</h2>
+            <p style="color: #666; margin-bottom: 20px;">Test all endpoints with your own inputs</p>
 
-            <div class="form-group">
-                <label>Your Message/Prompt</label>
-                <textarea id="customPrompt" placeholder="Enter your message here...">Tell me a fun fact about space exploration</textarea>
+            <!-- AI Chat Fast Test -->
+            <div class="test-box">
+                <h3>💬 AI Chat (Fast - Llama 3.3 70B)</h3>
+                <input type="text" id="chatFastInput" class="form-input" placeholder="Enter your message..." value="What is quantum computing?">
+                <button class="button button-primary button-small" onclick="testChatFast()">Send</button>
             </div>
 
-            <div class="button-group">
-                <button class="button button-primary button-small" onclick="testCustomAIChat()">💬 AI Chat</button>
-                <button class="button button-primary button-small" onclick="testCustomGenerateNote()">📝 Generate Note</button>
-                <button class="button button-primary button-small" onclick="testCustomSummarize()">📊 Summarize</button>
+            <!-- AI Chat Advanced Test -->
+            <div class="test-box">
+                <h3>🧠 AI Chat (Advanced - DeepSeek with Reasoning)</h3>
+                <input type="text" id="chatAdvancedInput" class="form-input" placeholder="Enter complex query..." value="Explain the theory of relativity">
+                <button class="button button-primary button-small" onclick="testChatAdvanced()">Send</button>
             </div>
 
-            <div id="customTestStatus"></div>
+            <!-- Generate Note Test -->
+            <div class="test-box">
+                <h3>📝 Generate Note</h3>
+                <input type="text" id="generateNoteInput" class="form-input" placeholder="Enter topic..." value="Machine learning basics">
+                <button class="button button-primary button-small" onclick="testGenerateNote()">Generate</button>
+            </div>
+
+            <!-- Summarize Test -->
+            <div class="test-box">
+                <h3>📊 Summarize Text</h3>
+                <textarea id="summarizeInput" class="form-textarea" placeholder="Paste text to summarize...">Artificial intelligence (AI) is intelligence demonstrated by machines, in contrast to the natural intelligence displayed by humans and animals. Leading AI textbooks define the field as the study of "intelligent agents": any device that perceives its environment and takes actions that maximize its chance of successfully achieving its goals.</textarea>
+                <button class="button button-primary button-small" onclick="testSummarize()">Summarize</button>
+            </div>
+
+            <!-- Web Summary Test -->
+            <div class="test-box">
+                <h3>🌐 Web Page Summary</h3>
+                <input type="url" id="webUrlInput" class="form-input" placeholder="Enter web URL..." value="https://en.wikipedia.org/wiki/Artificial_intelligence">
+                <button class="button button-primary button-small" onclick="testWebSummary()">Summarize</button>
+            </div>
+
+            <!-- YouTube Summary Test -->
+            <div class="test-box">
+                <h3>🎥 YouTube Video Summary</h3>
+                <input type="text" id="youtubeUrlInput" class="form-input" placeholder="Enter YouTube URL..." value="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+                <select id="youtubeType" class="form-input">
+                    <option value="concise">Concise (2-3 sentences)</option>
+                    <option value="bullet">Bullet Points</option>
+                    <option value="detailed">Detailed</option>
+                </select>
+                <button class="button button-primary button-small" onclick="testYouTubeSummary()">Summarize</button>
+            </div>
+
+            <!-- Create Workspace Test -->
+            <div class="test-box">
+                <h3>📁 Create Workspace</h3>
+                <input type="text" id="workspaceNameInput" class="form-input" placeholder="Workspace name..." value="My Test Workspace">
+                <button class="button button-primary button-small" onclick="testCreateWorkspace()">Create</button>
+            </div>
+
+            <!-- List Workspaces Test -->
+            <div class="test-box">
+                <h3>📋 List All Workspaces</h3>
+                <button class="button button-primary button-small" onclick="testGetWorkspaces()">Get Workspaces</button>
+            </div>
         </div>
 
         <!-- Step 4: Quick Tests -->
-        <div class="section hidden" id="apiTestsSection">
+        <div class="section hidden" id="apiTestsSection" style="display: none;">
             <h2>🧪 Step 3: Quick Test All Endpoints</h2>
             <p style="color: #666; margin-bottom: 20px;">Run pre-configured tests on all endpoints</p>
 
@@ -403,7 +489,7 @@
                     <div class="card-icon">📝</div>
                     <div class="card-title">Generate Note</div>
                     <div class="card-desc">Test note generation</div>
-                    <button class="button button-primary button-small" onclick="testGenerateNote()">Test</button>
+                    <button class="button button-primary button-small" onclick="testGenerateNoteOld()">Test</button>
                 </div>
 
                 <!-- Summarize Test -->
@@ -411,7 +497,7 @@
                     <div class="card-icon">📊</div>
                     <div class="card-title">Summarize Text</div>
                     <div class="card-desc">Test summarization</div>
-                    <button class="button button-primary button-small" onclick="testSummarize()">Test</button>
+                    <button class="button button-primary button-small" onclick="testSummarizeOld()">Test</button>
                 </div>
 
                 <!-- Create Workspace Test -->
@@ -419,7 +505,7 @@
                     <div class="card-icon">📁</div>
                     <div class="card-title">Create Workspace</div>
                     <div class="card-desc">Test Firebase auth</div>
-                    <button class="button button-primary button-small" onclick="testCreateWorkspace()">Test</button>
+                    <button class="button button-primary button-small" onclick="testCreateWorkspaceOld()">Test</button>
                 </div>
 
                 <!-- Get Workspaces Test -->
@@ -427,7 +513,7 @@
                     <div class="card-icon">📋</div>
                     <div class="card-title">List Workspaces</div>
                     <div class="card-desc">Get all workspaces</div>
-                    <button class="button button-primary button-small" onclick="testGetWorkspaces()">Test</button>
+                    <button class="button button-primary button-small" onclick="testGetWorkspacesOld()">Test</button>
                 </div>
 
                 <!-- Web Summary Test -->
@@ -435,7 +521,7 @@
                     <div class="card-icon">🌐</div>
                     <div class="card-title">Web Summary</div>
                     <div class="card-desc">Summarize web page</div>
-                    <button class="button button-primary button-small" onclick="testWebSummary()">Test</button>
+                    <button class="button button-primary button-small" onclick="testWebSummaryOld()">Test</button>
                 </div>
 
                 <!-- YouTube Summary Test -->
@@ -443,7 +529,7 @@
                     <div class="card-icon">🎥</div>
                     <div class="card-title">YouTube Summary</div>
                     <div class="card-desc">Summarize YouTube video</div>
-                    <button class="button button-primary button-small" onclick="testYouTubeSummary()">Test</button>
+                    <button class="button button-primary button-small" onclick="testYouTubeSummaryOld()">Test</button>
                 </div>
             </div>
         </div>
@@ -781,22 +867,71 @@
         };
 
         // Custom test functions with user input
-        window.testCustomAIChat = async function() {
-            const prompt = document.getElementById('customPrompt').value.trim();
-            const statusDiv = document.getElementById('customTestStatus');
-
+        // New test functions using user input
+        window.testChatFast = async function() {
+            const prompt = document.getElementById('chatFastInput').value.trim();
             if (!prompt) {
-                statusDiv.innerHTML = '<div class="status status-error">❌ Please enter a message</div>';
+                addResult('💬 AI Chat Fast', false, { error: 'Please enter a message' });
                 return;
             }
 
-            statusDiv.innerHTML = '<div class="status status-info">⏳ Chatting with AI...</div>';
+            addResult('💬 AI Chat Fast (Llama 3.3 70B)', true, { status: 'Sending...' });
+
+            try {
+                const response = await fetch(`${API_BASE}/api/ai/chat-fast`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+
+                let fullResponse = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.content) fullResponse += data.content;
+                                if (data.finished) {
+                                    addResult('💬 AI Chat Fast (Llama 3.3 70B)', true, {
+                                        model: 'meta/llama-3.3-70b-instruct',
+                                        prompt,
+                                        response: fullResponse,
+                                        note: 'Fast model with concise responses'
+                                    });
+                                    return;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+            } catch (error) {
+                addResult('💬 AI Chat Fast', false, { error: error.message });
+            }
+        };
+
+        window.testChatAdvanced = async function() {
+            const prompt = document.getElementById('chatAdvancedInput').value.trim();
+            if (!prompt) {
+                addResult('🧠 AI Chat Advanced', false, { error: 'Please enter a message' });
+                return;
+            }
+
+            addResult('🧠 AI Chat Advanced (DeepSeek)', true, { status: 'Thinking...' });
 
             try {
                 const response = await fetch(`${API_BASE}/api/ai/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt, temperature: 0.7 })
+                    body: JSON.stringify({ prompt })
                 });
 
                 let fullResponse = '';
@@ -814,16 +949,14 @@
                         if (line.startsWith('data: ')) {
                             try {
                                 const data = JSON.parse(line.slice(6));
-                                if (data.content) {
-                                    fullResponse += data.content;
-                                }
+                                if (data.content) fullResponse += data.content;
                                 if (data.finished) {
-                                    statusDiv.innerHTML = `
-                                        <div class="status status-success">
-                                            ✅ Response received!
-                                            <div class="response-box">${fullResponse}</div>
-                                        </div>
-                                    `;
+                                    addResult('🧠 AI Chat Advanced (DeepSeek)', true, {
+                                        model: 'deepseek-ai/deepseek-r1-distill-qwen-14b',
+                                        prompt,
+                                        response: data.fullResponse || fullResponse,
+                                        note: 'Advanced model with reasoning (think blocks removed)'
+                                    });
                                     return;
                                 }
                             } catch (e) {}
@@ -831,26 +964,24 @@
                     }
                 }
             } catch (error) {
-                statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${error.message}</div>`;
+                addResult('🧠 AI Chat Advanced', false, { error: error.message });
             }
         };
 
-        window.testCustomGenerateNote = async function() {
-            const prompt = document.getElementById('customPrompt').value.trim();
-            const statusDiv = document.getElementById('customTestStatus');
-
+        window.testGenerateNote = async function() {
+            const prompt = document.getElementById('generateNoteInput').value.trim();
             if (!prompt) {
-                statusDiv.innerHTML = '<div class="status status-error">❌ Please enter a prompt</div>';
+                addResult('📝 Generate Note', false, { error: 'Please enter a topic' });
                 return;
             }
 
-            statusDiv.innerHTML = '<div class="status status-info">⏳ Generating note...</div>';
+            addResult('📝 Generate Note', true, { status: 'Generating...' });
 
             try {
                 const response = await fetch(`${API_BASE}/api/ai/generate-note`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt, action: 'generate', temperature: 0.7 })
+                    body: JSON.stringify({ prompt: `${prompt}. Reply concisely.`, action: 'generate' })
                 });
 
                 let fullResponse = '';
@@ -868,16 +999,13 @@
                         if (line.startsWith('data: ')) {
                             try {
                                 const data = JSON.parse(line.slice(6));
-                                if (data.content) {
-                                    fullResponse += data.content;
-                                }
+                                if (data.content) fullResponse += data.content;
                                 if (data.finished) {
-                                    statusDiv.innerHTML = `
-                                        <div class="status status-success">
-                                            ✅ Note generated!
-                                            <div class="response-box">${fullResponse}</div>
-                                        </div>
-                                    `;
+                                    addResult('📝 Generate Note', true, {
+                                        topic: prompt,
+                                        content: data.fullResponse || fullResponse,
+                                        status: 'Note generated successfully'
+                                    });
                                     return;
                                 }
                             } catch (e) {}
@@ -885,50 +1013,137 @@
                     }
                 }
             } catch (error) {
-                statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${error.message}</div>`;
+                addResult('📝 Generate Note', false, { error: error.message });
             }
         };
 
-        window.testCustomSummarize = async function() {
-            const content = document.getElementById('customPrompt').value.trim();
-            const statusDiv = document.getElementById('customTestStatus');
-
+        window.testSummarize = async function() {
+            const content = document.getElementById('summarizeInput').value.trim();
             if (!content) {
-                statusDiv.innerHTML = '<div class="status status-error">❌ Please enter text to summarize</div>';
+                addResult('📊 Summarize', false, { error: 'Please enter text to summarize' });
                 return;
             }
 
-            statusDiv.innerHTML = '<div class="status status-info">⏳ Summarizing...</div>';
+            addResult('📊 Summarize', true, { status: 'Summarizing...' });
 
             try {
                 const response = await fetch(`${API_BASE}/api/ai/summarize`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content, summary_type: 'general' })
+                    body: JSON.stringify({ content: `${content}\n\n(Reply concisely)`, summary_type: 'brief' })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    statusDiv.innerHTML = `
-                        <div class="status status-success">
-                            ✅ Summary complete!
-                            <div class="response-box">${data.summary}</div>
-                            <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
-                                Original: ${data.original_length} chars • Type: ${data.summary_type}
-                            </div>
-                        </div>
-                    `;
+                    addResult('📊 Summarize', true, {
+                        originalLength: data.original_length,
+                        summaryType: data.summary_type,
+                        summary: data.summary,
+                        status: 'Text summarized successfully'
+                    });
                 } else {
-                    statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${data.message || data.error}</div>`;
+                    addResult('📊 Summarize', false, data);
                 }
             } catch (error) {
-                statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${error.message}</div>`;
+                addResult('📊 Summarize', false, { error: error.message });
+            }
+        };
+
+        window.testWebSummary = async function() {
+            const url = document.getElementById('webUrlInput').value.trim();
+            if (!url) {
+                addResult('🌐 Web Summary', false, { error: 'Please enter a URL' });
+                return;
+            }
+
+            addResult('🌐 Web Summary', true, { status: 'Fetching page...' });
+
+            try {
+                const response = await fetch(`${API_BASE}/api/web-summary/summarize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                let fullResponse = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.content) fullResponse += data.content;
+                                if (data.finished) {
+                                    addResult('🌐 Web Summary', true, {
+                                        url,
+                                        summary: fullResponse,
+                                        status: 'Web page summarized successfully'
+                                    });
+                                    return;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+            } catch (error) {
+                addResult('🌐 Web Summary', false, { error: error.message });
+            }
+        };
+
+        window.testYouTubeSummary = async function() {
+            const videoUrl = document.getElementById('youtubeUrlInput').value.trim();
+            const summaryType = document.getElementById('youtubeType').value;
+
+            if (!videoUrl) {
+                addResult('🎥 YouTube Summary', false, { error: 'Please enter a YouTube URL' });
+                return;
+            }
+
+            addResult('🎥 YouTube Summary', true, { status: 'Fetching transcript...' });
+
+            try {
+                const response = await fetch(`${API_BASE}/api/youtube-summary/summarize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ videoUrl, summaryType })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    addResult('🎥 YouTube Summary', true, {
+                        videoId: data.videoId,
+                        summaryType: data.summaryType,
+                        summary: data.summary,
+                        wordCount: data.transcriptWordCount,
+                        duration: Math.round(data.videoDuration / 60) + ' minutes',
+                        status: 'YouTube video summarized successfully'
+                    });
+                } else {
+                    addResult('🎥 YouTube Summary', false, data);
+                }
+            } catch (error) {
+                addResult('🎥 YouTube Summary', false, { error: error.message });
             }
         };
 
         window.testCreateWorkspace = async function() {
-            addResult('📁 Create Workspace Test', true, { status: 'Creating...' });
+            const name = document.getElementById('workspaceNameInput').value.trim();
+            if (!name) {
+                addResult('📁 Create Workspace', false, { error: 'Please enter a workspace name' });
+                return;
+            }
+
+            addResult('📁 Create Workspace', true, { status: 'Creating...' });
 
             try {
                 const response = await fetch(`${API_BASE}/api/workspaces`, {
@@ -938,9 +1153,9 @@
                         'Authorization': `Bearer ${firebaseToken}`
                     },
                     body: JSON.stringify({
-                        name: 'Test Workspace ' + Date.now(),
-                        description: 'Created from demo client',
-                        icon: '🎯',
+                        name,
+                        description: 'Created from test client',
+                        icon: '📝',
                         color: '#667eea'
                     })
                 });
@@ -948,24 +1163,22 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    addResult('📁 Create Workspace Test', true, {
-                        endpoint: 'POST /api/workspaces',
-                        authentication: 'Firebase ID Token ✅',
+                    addResult('📁 Create Workspace', true, {
                         workspaceId: data.workspace.id,
                         workspaceName: data.workspace.name,
                         userId: currentUser.uid,
-                        status: 'Success - Workspace created with Firebase auth!'
+                        status: 'Workspace created with Firebase auth'
                     });
                 } else {
-                    addResult('📁 Create Workspace Test', false, data);
+                    addResult('📁 Create Workspace', false, data);
                 }
             } catch (error) {
-                addResult('📁 Create Workspace Test', false, { error: error.message });
+                addResult('📁 Create Workspace', false, { error: error.message });
             }
         };
 
         window.testGetWorkspaces = async function() {
-            addResult('📋 List Workspaces Test', true, { status: 'Fetching...' });
+            addResult('📋 List Workspaces', true, { status: 'Fetching...' });
 
             try {
                 const response = await fetch(`${API_BASE}/api/workspaces`, {
@@ -978,22 +1191,20 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    addResult('📋 List Workspaces Test', true, {
-                        endpoint: 'GET /api/workspaces',
-                        authentication: 'Firebase ID Token ✅',
-                        workspacesCount: data.workspaces.length,
+                    addResult('📋 List Workspaces', true, {
+                        count: data.workspaces.length,
                         workspaces: data.workspaces.map(w => ({
                             id: w.id,
                             name: w.name,
                             icon: w.icon
                         })),
-                        status: 'Success - Retrieved your workspaces!'
+                        status: 'Workspaces retrieved successfully'
                     });
                 } else {
-                    addResult('📋 List Workspaces Test', false, data);
+                    addResult('📋 List Workspaces', false, data);
                 }
             } catch (error) {
-                addResult('📋 List Workspaces Test', false, { error: error.message });
+                addResult('📋 List Workspaces', false, { error: error.message });
             }
         };
     </script>

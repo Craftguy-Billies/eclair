@@ -154,3 +154,147 @@ router.post('/summarize', async (req, res) => {
 Only use audio transcription (AssemblyAI) as fallback for videos without captions.
 
 **Avoid yt-dlp + Whisper** unless you have a dedicated server with no timeout limits.
+
+## Rate Limiting & Multi-User Concerns
+
+### YouTube Transcript API Limits
+
+**Library behavior:**
+- `youtube-transcript` is a scraper that fetches public YouTube caption data
+- **No official API key required** (it scrapes YouTube's public endpoint)
+- **No hard rate limits from YouTube** for reasonable usage
+- However, YouTube **may block your server IP** if you abuse it (thousands of requests per minute)
+
+**Estimated safe limits:**
+- ~300-500 requests per hour from single IP
+- YouTube uses dynamic rate limiting (behavior-based, not fixed quotas)
+- If blocked: temporary (usually 1-6 hours), not permanent
+
+### Your Current Rate Limit (40/15min)
+
+**Is it enough for multiple users?**
+
+Scenario analysis:
+- 40 requests per 15 minutes = **160 requests per hour**
+- If you have 10 users: each can make 16 requests/hour (reasonable)
+- If you have 100 users: each gets 1.6 requests/hour (tight, but OK for note-taking app)
+
+**Recommendation:**
+- For < 50 concurrent users: **Current limit is fine**
+- For 50-500 users: **Increase to 100-200 per 15min**
+- For 500+ users: **Consider caching** (see below)
+
+### Solutions for High Traffic
+
+**Option 1: Increase Rate Limit**
+```javascript
+const youtubeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200, // Increased from 40
+  message: { error: 'YouTube summary quota exceeded' }
+});
+```
+
+**Option 2: Per-User Rate Limiting (Better)**
+```javascript
+// Install: npm install rate-limit-redis
+const RedisStore = require('rate-limit-redis');
+
+const youtubeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // Per user limit
+  keyGenerator: (req) => {
+    // Use Firebase user ID from token
+    return req.user?.uid || req.ip;
+  }
+});
+```
+This gives **each user** their own quota instead of sharing globally.
+
+**Option 3: Cache Popular Videos (Best for Scale)**
+```javascript
+// Store transcripts in Firebase for 24 hours
+const transcriptCache = {};
+
+async function getTranscriptWithCache(videoId) {
+  // Check cache first
+  const cached = await db.collection('transcript_cache')
+    .doc(videoId)
+    .get();
+  
+  if (cached.exists && Date.now() - cached.data().timestamp < 86400000) {
+    return cached.data().transcript; // Use cached (no YouTube API call)
+  }
+  
+  // Fetch from YouTube
+  const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+  
+  // Cache it
+  await db.collection('transcript_cache').doc(videoId).set({
+    transcript,
+    timestamp: Date.now()
+  });
+  
+  return transcript;
+}
+```
+
+**Benefits of caching:**
+- Popular videos only fetched once per day
+- Reduces YouTube API calls by 80-95%
+- Faster response (no YouTube request)
+- Protects against YouTube IP blocks
+
+### Will YouTube Stop Your Service?
+
+**Short answer: No, if you're reasonable.**
+
+**What YouTube considers abuse:**
+- ❌ 1000+ requests per minute (automated scraping)
+- ❌ Downloading videos in bulk
+- ❌ Bypassing age restrictions or private videos
+
+**What's acceptable:**
+- ✅ Fetching public captions at human-like rates (< 500/hour)
+- ✅ Single-user note-taking app usage
+- ✅ Educational or productivity tools
+
+**If YouTube blocks you:**
+- **Temporary** (1-6 hours typically)
+- **IP-based** (use different server/IP to bypass)
+- **Not account-based** (your YouTube account is safe)
+- **No legal issues** (you're accessing public data)
+
+### Recommended Configuration
+
+**For < 100 users:**
+```javascript
+// Keep current setup
+max: 40 per 15 minutes (160/hour total)
+```
+
+**For 100-1000 users:**
+```javascript
+// Increase global limit + add caching
+max: 200 per 15 minutes
++ transcript caching (24 hours)
+```
+
+**For 1000+ users:**
+```javascript
+// Per-user limits + aggressive caching
+max: 5 per user per 15 minutes
++ transcript caching (24 hours)
++ Redis for distributed rate limiting
+```
+
+### Summary Table
+
+| Users | Strategy | YouTube API Calls | Block Risk |
+|-------|----------|------------------|------------|
+| < 50 | Current (40/15min) | ~160/hour | Very Low |
+| 50-500 | Increase to 200/15min + cache | ~50-200/hour | Low |
+| 500-5000 | Per-user limits + cache | ~50-300/hour | Very Low |
+| 5000+ | Aggressive cache + CDN | ~100-500/hour | Low |
+
+**Bottom line:** Your current setup is safe for small-to-medium usage. Add caching if you grow beyond 100 active users.
