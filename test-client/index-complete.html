@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclair Complete Demo - Firebase + API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button-google {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .button-google:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .button-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .button-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .button-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .button-danger:hover {
+            background: #dc2626;
+        }
+
+        .status {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid #667eea;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .user-email {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .workspace-list,
+        .result-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .workspace-item,
+        .result-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .workspace-item:hover,
+        .result-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .item-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .button-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .response-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 15px;
+        }
+
+        .success-indicator {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #10b981;
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+
+        .error-indicator {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #ef4444;
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Eclair Complete Demo</h1>
+            <p class="subtitle">Full Stack Test: Google Sign-In → Firebase Auth → API Calls</p>
+        </div>
+
+        <!-- Step 1: Sign In -->
+        <div class="section" id="signInSection">
+            <h2>🔐 Step 1: Sign In with Google</h2>
+            <p style="color: #666; margin-bottom: 20px;">First, sign in with your Google account to get authenticated</p>
+            
+            <button class="button button-google" onclick="signInWithGoogle()">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+            </button>
+
+            <div id="signInStatus"></div>
+        </div>
+
+        <!-- Step 2: User Profile (after sign-in) -->
+        <div class="section hidden" id="profileSection">
+            <h2>✅ Signed In Successfully!</h2>
+            <div class="user-card">
+                <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                <div class="user-info">
+                    <div class="user-name" id="userName"></div>
+                    <div class="user-email" id="userEmail"></div>
+                </div>
+                <button class="button button-secondary" onclick="signOut()">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- Step 3: API Tests -->
+        <div class="section hidden" id="apiTestsSection">
+            <h2>🧪 Step 2: Test All API Endpoints</h2>
+            <p style="color: #666; margin-bottom: 20px;">Now let's test all your backend endpoints</p>
+
+            <div class="grid">
+                <!-- AI Chat Test -->
+                <div class="card">
+                    <div class="card-icon">🤖</div>
+                    <div class="card-title">AI Chat</div>
+                    <div class="card-desc">Test NVIDIA DeepSeek API</div>
+                    <button class="button button-primary button-small" onclick="testAIChat()">Test AI</button>
+                </div>
+
+                <!-- Create Workspace Test -->
+                <div class="card">
+                    <div class="card-icon">📁</div>
+                    <div class="card-title">Create Workspace</div>
+                    <div class="card-desc">Test Firebase auth endpoint</div>
+                    <button class="button button-primary button-small" onclick="testCreateWorkspace()">Create</button>
+                </div>
+
+                <!-- Get Workspaces Test -->
+                <div class="card">
+                    <div class="card-icon">📋</div>
+                    <div class="card-title">List Workspaces</div>
+                    <div class="card-desc">Get all your workspaces</div>
+                    <button class="button button-primary button-small" onclick="testGetWorkspaces()">Get List</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Results -->
+        <div class="section hidden" id="resultsSection">
+            <h2>📊 API Test Results</h2>
+            <div id="resultsList"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut as firebaseSignOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQP67YF1CfWIqN3Q0MwLzsF6bRznGfuJc",
+            authDomain: "eclair-e2b3e.firebaseapp.com",
+            projectId: "eclair-e2b3e",
+            storageBucket: "eclair-e2b3e.firebasestorage.app",
+            messagingSenderId: "737073613486",
+            appId: "1:737073613486:web:d54c84eb65c56a86ae3b3f",
+            measurementId: "G-MBRVMFZC3Y"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        const API_BASE = 'https://eclair-b7zo.vercel.app';
+
+        let currentUser = null;
+        let firebaseToken = null;
+
+        // Sign In
+        window.signInWithGoogle = async function() {
+            const statusDiv = document.getElementById('signInStatus');
+            try {
+                statusDiv.innerHTML = '<div class="status status-info">⏳ Opening Google sign-in...</div>';
+                const result = await signInWithPopup(auth, provider);
+                statusDiv.innerHTML = '<div class="status status-success">✅ Signed in successfully!</div>';
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${error.message}</div>`;
+            }
+        };
+
+        // Sign Out
+        window.signOut = async function() {
+            try {
+                await firebaseSignOut(auth);
+                document.getElementById('resultsSection').classList.add('hidden');
+                document.getElementById('resultsList').innerHTML = '';
+            } catch (error) {
+                console.error('Sign-out error:', error);
+            }
+        };
+
+        // Auth State Listener
+        onAuthStateChanged(auth, async (user) => {
+            const signInSection = document.getElementById('signInSection');
+            const profileSection = document.getElementById('profileSection');
+            const apiTestsSection = document.getElementById('apiTestsSection');
+
+            if (user) {
+                currentUser = user;
+                firebaseToken = await user.getIdToken();
+
+                // Update UI
+                document.getElementById('userName').textContent = user.displayName;
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userAvatar').src = user.photoURL;
+
+                // Show sections
+                signInSection.classList.add('hidden');
+                profileSection.classList.remove('hidden');
+                apiTestsSection.classList.remove('hidden');
+            } else {
+                currentUser = null;
+                firebaseToken = null;
+
+                signInSection.classList.remove('hidden');
+                profileSection.classList.add('hidden');
+                apiTestsSection.classList.add('hidden');
+            }
+        });
+
+        // Test Functions
+        function addResult(title, success, data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsList = document.getElementById('resultsList');
+            
+            resultsSection.classList.remove('hidden');
+
+            const indicator = success 
+                ? '<span class="success-indicator">✅ SUCCESS</span>'
+                : '<span class="error-indicator">❌ FAILED</span>';
+
+            const resultHTML = `
+                <div class="result-item">
+                    <div class="item-header">
+                        <div class="item-title">${title}${indicator}</div>
+                    </div>
+                    <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                </div>
+            `;
+
+            resultsList.insertAdjacentHTML('afterbegin', resultHTML);
+        }
+
+        window.testAIChat = async function() {
+            addResult('🤖 AI Chat Test', true, { status: 'Starting...' });
+
+            try {
+                const response = await fetch(`${API_BASE}/api/ai/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: 'Say "Hello from Eclair!" in one sentence.',
+                        temperature: 0.7
+                    })
+                });
+
+                let fullResponse = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.content) {
+                                    fullResponse += data.content;
+                                }
+                                if (data.finished) {
+                                    addResult('🤖 AI Chat Test', true, {
+                                        endpoint: 'POST /api/ai/chat',
+                                        authentication: 'None (public endpoint)',
+                                        response: fullResponse,
+                                        status: 'Success - AI is working!'
+                                    });
+                                    return;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+            } catch (error) {
+                addResult('🤖 AI Chat Test', false, { error: error.message });
+            }
+        };
+
+        window.testCreateWorkspace = async function() {
+            addResult('📁 Create Workspace Test', true, { status: 'Creating...' });
+
+            try {
+                const response = await fetch(`${API_BASE}/api/workspaces`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${firebaseToken}`
+                    },
+                    body: JSON.stringify({
+                        name: 'Test Workspace ' + Date.now(),
+                        description: 'Created from demo client',
+                        icon: '🎯',
+                        color: '#667eea'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    addResult('📁 Create Workspace Test', true, {
+                        endpoint: 'POST /api/workspaces',
+                        authentication: 'Firebase ID Token ✅',
+                        workspaceId: data.workspace.id,
+                        workspaceName: data.workspace.name,
+                        userId: currentUser.uid,
+                        status: 'Success - Workspace created with Firebase auth!'
+                    });
+                } else {
+                    addResult('📁 Create Workspace Test', false, data);
+                }
+            } catch (error) {
+                addResult('📁 Create Workspace Test', false, { error: error.message });
+            }
+        };
+
+        window.testGetWorkspaces = async function() {
+            addResult('📋 List Workspaces Test', true, { status: 'Fetching...' });
+
+            try {
+                const response = await fetch(`${API_BASE}/api/workspaces`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${firebaseToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    addResult('📋 List Workspaces Test', true, {
+                        endpoint: 'GET /api/workspaces',
+                        authentication: 'Firebase ID Token ✅',
+                        workspacesCount: data.workspaces.length,
+                        workspaces: data.workspaces.map(w => ({
+                            id: w.id,
+                            name: w.name,
+                            icon: w.icon
+                        })),
+                        status: 'Success - Retrieved your workspaces!'
+                    });
+                } else {
+                    addResult('📋 List Workspaces Test', false, data);
+                }
+            } catch (error) {
+                addResult('📋 List Workspaces Test', false, { error: error.message });
+            }
+        };
+    </script>
+</body>
+</html>

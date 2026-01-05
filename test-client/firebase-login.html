@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Google Sign-In Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .button {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .button-google {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .button-google:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .button-secondary {
+            background: #f0f0f0;
+            color: #333;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .button-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+        }
+
+        .user-details {
+            text-align: left;
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .user-email {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .token-display {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.75rem;
+            word-break: break-all;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            margin-top: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider {
+            margin: 30px 0;
+            text-align: center;
+            color: #999;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .code-snippet {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-top: 15px;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔐 Firebase Google Sign-In</h1>
+            <p class="subtitle">Sign in with Google to get your Firebase ID token</p>
+
+            <!-- Not Signed In State -->
+            <div id="signedOutState">
+                <button class="button button-google" onclick="signInWithGoogle()">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Sign in with Google
+                </button>
+
+                <div class="divider">OR</div>
+
+                <div class="code-snippet">
+                    <strong>For React Native/Swift:</strong><br>
+                    Follow the integration guide below after enabling Google sign-in in Firebase Console.
+                </div>
+            </div>
+
+            <!-- Signed In State -->
+            <div id="signedInState" class="hidden">
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                    <div class="user-details">
+                        <div class="user-name" id="userName"></div>
+                        <div class="user-email" id="userEmail"></div>
+                    </div>
+                </div>
+
+                <button class="button button-primary" onclick="getAndCopyToken()">
+                    📋 Copy Firebase ID Token
+                </button>
+
+                <button class="button button-primary" onclick="openWorkspacesTest()">
+                    🚀 Test Workspaces API
+                </button>
+
+                <button class="button button-secondary" onclick="signOut()">
+                    🚪 Sign Out
+                </button>
+
+                <div id="tokenStatus"></div>
+            </div>
+
+            <div id="errorStatus"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut as firebaseSignOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQP67YF1CfWIqN3Q0MwLzsF6bRznGfuJc",
+            authDomain: "eclair-e2b3e.firebaseapp.com",
+            projectId: "eclair-e2b3e",
+            storageBucket: "eclair-e2b3e.firebasestorage.app",
+            messagingSenderId: "737073613486",
+            appId: "1:737073613486:web:d54c84eb65c56a86ae3b3f",
+            measurementId: "G-MBRVMFZC3Y"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Global functions
+        window.signInWithGoogle = async function() {
+            const errorDiv = document.getElementById('errorStatus');
+            try {
+                errorDiv.innerHTML = '<div class="status status-info">⏳ Opening Google sign-in...</div>';
+                const result = await signInWithPopup(auth, provider);
+                errorDiv.innerHTML = '';
+                console.log('Signed in:', result.user);
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                errorDiv.innerHTML = `<div class="status status-error">❌ Sign-in failed: ${error.message}</div>`;
+            }
+        };
+
+        window.signOut = async function() {
+            try {
+                await firebaseSignOut(auth);
+                console.log('Signed out');
+            } catch (error) {
+                console.error('Sign-out error:', error);
+            }
+        };
+
+        window.getAndCopyToken = async function() {
+            const statusDiv = document.getElementById('tokenStatus');
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    statusDiv.innerHTML = '<div class="status status-error">❌ No user signed in</div>';
+                    return;
+                }
+
+                statusDiv.innerHTML = '<div class="status status-info">⏳ Getting Firebase ID token...</div>';
+                
+                const idToken = await user.getIdToken();
+                
+                // Copy to clipboard
+                await navigator.clipboard.writeText(idToken);
+                
+                // Store for workspaces test
+                localStorage.setItem('eclair_firebase_token', idToken);
+                
+                statusDiv.innerHTML = `
+                    <div class="status status-success">
+                        ✅ Token copied to clipboard!
+                        <div class="token-display">${idToken}</div>
+                        <div style="margin-top: 10px; font-size: 0.85rem;">
+                            Token is also saved for the workspaces test client.
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Token error:', error);
+                statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${error.message}</div>`;
+            }
+        };
+
+        window.openWorkspacesTest = function() {
+            window.open('workspaces.html', '_blank');
+        };
+
+        // Listen for auth state changes
+        onAuthStateChanged(auth, (user) => {
+            const signedOutState = document.getElementById('signedOutState');
+            const signedInState = document.getElementById('signedInState');
+            
+            if (user) {
+                // User is signed in
+                signedOutState.classList.add('hidden');
+                signedInState.classList.remove('hidden');
+                
+                document.getElementById('userName').textContent = user.displayName;
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userAvatar').src = user.photoURL;
+                
+                console.log('User signed in:', user);
+            } else {
+                // User is signed out
+                signedOutState.classList.remove('hidden');
+                signedInState.classList.add('hidden');
+                document.getElementById('tokenStatus').innerHTML = '';
+                document.getElementById('errorStatus').innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>
