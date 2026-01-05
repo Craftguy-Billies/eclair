@@ -8,6 +8,7 @@ require('dotenv').config();
 const aiRoutes = require('./routes/ai');
 const webSummaryRoutes = require('./routes/web-summary');
 const notesRoutes = require('./routes/notes');
+const workspacesRoutes = require('./routes/workspaces');
 const monitoringRoutes = require('./routes/monitoring');
 
 // Import security middleware
@@ -116,6 +117,7 @@ app.get('/health', (req, res) => {
 app.use('/api/ai', validateContent, aiRoutes); // NVIDIA key secured in environment
 app.use('/api/web-summary', validateContent, webSummaryRoutes); // No extra auth needed
 app.use('/api/notes', validateContent, notesRoutes); // Firebase auth handles this
+app.use('/api/workspaces', validateContent, workspacesRoutes); // Firebase auth handles this
 app.use('/api/monitoring', validateApiKey, monitoringRoutes); // Admin only
 
 // 404 handler

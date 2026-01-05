@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclair Workspaces Test Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"],
+        textarea {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .button-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .button-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .button-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .button-danger:hover {
+            background: #dc2626;
+        }
+
+        .status {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .workspace-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .workspace-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .workspace-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .workspace-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .workspace-icon {
+            font-size: 1.5rem;
+        }
+
+        .workspace-meta {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .button-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .emoji-input {
+            width: 80px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Eclair Workspaces Test Client</h1>
+            <p class="subtitle">Testing workspace management with Firebase Authentication</p>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="section" id="authSection">
+            <h2>🔐 Firebase Authentication</h2>
+            <div class="auth-form">
+                <div class="form-group">
+                    <label>Firebase ID Token (from your app)</label>
+                    <textarea id="firebaseToken" placeholder="Paste your Firebase ID token here..."></textarea>
+                    <small style="color: #666;">Get this from firebase.auth().currentUser.getIdToken()</small>
+                </div>
+                <button class="button button-primary" onclick="saveToken()">Save Token</button>
+                <div id="authStatus"></div>
+            </div>
+
+            <div class="code-block">
+// Get Firebase token in your app:
+const token = await firebase.auth().currentUser.getIdToken();
+console.log(token); // Copy this token
+            </div>
+        </div>
+
+        <!-- Workspaces Management Section -->
+        <div class="section hidden" id="workspacesSection">
+            <h2>📁 Workspace Management</h2>
+            
+            <!-- Create Workspace Form -->
+            <div style="margin-bottom: 30px;">
+                <h3 style="margin-bottom: 15px; color: #667eea;">Create New Workspace</h3>
+                <div class="auth-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Workspace Name *</label>
+                            <input type="text" id="workspaceName" placeholder="My Awesome Workspace">
+                        </div>
+                        <div class="form-group">
+                            <label>Icon (Emoji)</label>
+                            <input type="text" id="workspaceIcon" class="emoji-input" placeholder="📁" value="📁">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="workspaceDescription" placeholder="What's this workspace for?"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="workspaceColor" value="#3B82F6">
+                            <span id="colorValue">#3B82F6</span>
+                        </div>
+                    </div>
+                    <button class="button button-primary" onclick="createWorkspace()">Create Workspace</button>
+                    <div id="createStatus"></div>
+                </div>
+            </div>
+
+            <!-- Workspaces List -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #667eea;">Your Workspaces</h3>
+                    <button class="button button-secondary button-small" onclick="loadWorkspaces()">🔄 Refresh</button>
+                </div>
+                <div id="workspacesList"></div>
+                <div id="listStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://eclair-b7zo.vercel.app';
+        let authToken = null;
+
+        // Color picker update
+        document.getElementById('workspaceColor')?.addEventListener('input', (e) => {
+            document.getElementById('colorValue').textContent = e.target.value;
+        });
+
+        function saveToken() {
+            const token = document.getElementById('firebaseToken').value.trim();
+            const statusDiv = document.getElementById('authStatus');
+
+            if (!token) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ Please enter a token</div>';
+                return;
+            }
+
+            authToken = token;
+            localStorage.setItem('eclair_firebase_token', token);
+
+            statusDiv.innerHTML = '<div class="status status-success">✅ Token saved! Loading workspaces...</div>';
+            
+            document.getElementById('workspacesSection').classList.remove('hidden');
+            loadWorkspaces();
+        }
+
+        async function createWorkspace() {
+            const name = document.getElementById('workspaceName').value.trim();
+            const description = document.getElementById('workspaceDescription').value.trim();
+            const icon = document.getElementById('workspaceIcon').value.trim();
+            const color = document.getElementById('workspaceColor').value;
+            const statusDiv = document.getElementById('createStatus');
+
+            if (!name) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ Workspace name is required</div>';
+                return;
+            }
+
+            if (!authToken) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ Please save your Firebase token first</div>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<div class="status status-info">⏳ Creating workspace...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/workspaces`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ name, description, icon, color })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerHTML = `<div class="status status-success">✅ Workspace created: ${data.workspace.name}</div>`;
+                    // Clear form
+                    document.getElementById('workspaceName').value = '';
+                    document.getElementById('workspaceDescription').value = '';
+                    document.getElementById('workspaceIcon').value = '📁';
+                    document.getElementById('workspaceColor').value = '#3B82F6';
+                    document.getElementById('colorValue').textContent = '#3B82F6';
+                    // Reload list
+                    loadWorkspaces();
+                } else {
+                    statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${data.message || data.error}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status status-error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadWorkspaces() {
+            const listDiv = document.getElementById('workspacesList');
+            const statusDiv = document.getElementById('listStatus');
+
+            if (!authToken) {
+                statusDiv.innerHTML = '<div class="status status-error">❌ Please save your Firebase token first</div>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<div class="status status-info">⏳ Loading workspaces...</div>';
+            listDiv.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/workspaces`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerHTML = '';
+                    
+                    if (data.workspaces.length === 0) {
+                        listDiv.innerHTML = '<div class="status status-info">📭 No workspaces yet. Create your first one above!</div>';
+                        return;
+                    }
+
+                    listDiv.innerHTML = data.workspaces.map(workspace => `
+                        <div class="workspace-item" style="border-left: 4px solid ${workspace.color}">
+                            <div class="workspace-header">
+                                <div class="workspace-title">
+                                    <span class="workspace-icon">${workspace.icon}</span>
+                                    <span>${workspace.name}</span>
+                                </div>
+                                <button class="button button-danger button-small" onclick="deleteWorkspace('${workspace.id}', '${workspace.name}')">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                            ${workspace.description ? `<p style="color: #666; margin-top: 8px;">${workspace.description}</p>` : ''}
+                            <div class="workspace-meta">
+                                📊 ${workspace.noteCount || 0} notes • 
+                                🕐 Created ${new Date(workspace.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${data.message || data.error}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status status-error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+
+        async function deleteWorkspace(workspaceId, workspaceName) {
+            if (!confirm(`Are you sure you want to delete "${workspaceName}"?`)) {
+                return;
+            }
+
+            const statusDiv = document.getElementById('listStatus');
+            statusDiv.innerHTML = '<div class="status status-info">⏳ Deleting workspace...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/workspaces/${workspaceId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerHTML = `<div class="status status-success">✅ Workspace deleted: ${workspaceName}</div>`;
+                    loadWorkspaces();
+                } else {
+                    statusDiv.innerHTML = `<div class="status status-error">❌ Error: ${data.message || data.error}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status status-error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+
+        // Load token on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedToken = localStorage.getItem('eclair_firebase_token');
+            if (savedToken) {
+                document.getElementById('firebaseToken').value = savedToken;
+                authToken = savedToken;
+                document.getElementById('authStatus').innerHTML = '<div class="status status-success">✅ Token loaded from storage</div>';
+                document.getElementById('workspacesSection').classList.remove('hidden');
+                loadWorkspaces();
+            }
+        });
+    </script>
+</body>
+</html>
