@@ -81,29 +81,28 @@ router.post('/summarize', async (req, res) => {
 
     if (summaryType === 'detailed') {
       systemPrompt = 'You are a helpful assistant that creates detailed summaries of video transcripts. Break down the content into key sections with bullet points.';
-      userPrompt = `Create a detailed summary of this YouTube video transcript. Include:\n1. Main topic/title\n2. Key points covered (bullet points)\n3. Important details or examples\n4. Conclusion\n\nTranscript:\n${fullTranscript}`;
+      userPrompt = `Create a detailed summary of this YouTube video transcript. Include:\n1. Main topic/title\n2. Key points covered (bullet points)\n3. Important details or examples\n4. Conclusion\n\nTranscript:\n${fullTranscript}\n\n(Reply concisely)`;
     } else if (summaryType === 'bullet') {
       systemPrompt = 'You are a helpful assistant that creates concise bullet-point summaries.';
-      userPrompt = `Summarize this YouTube video transcript as bullet points (5-8 points maximum):\n\n${fullTranscript}`;
+      userPrompt = `Summarize this YouTube video transcript as bullet points (5-8 points maximum):\n\n${fullTranscript}\n\n(Reply concisely)`;
     } else { // concise (default)
       systemPrompt = 'You are a helpful assistant that creates very concise summaries. Keep summaries to 2-3 sentences maximum.';
-      userPrompt = `Summarize this YouTube video transcript in 2-3 sentences:\n\n${fullTranscript}`;
+      userPrompt = `Summarize this YouTube video transcript in 2-3 sentences:\n\n${fullTranscript}\n\n(Reply concisely)`;
     }
 
     // Step 4: Generate summary using NVIDIA AI
     const completion = await client.chat.completions.create({
-      model: process.env.NVIDIA_MODEL || 'deepseek/deepseek-r1-distill-qwen-14b',
+      model: 'meta/llama-3.3-70b-instruct',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.3,
-      max_tokens: summaryType === 'detailed' ? 1500 : (summaryType === 'bullet' ? 800 : 300),
+      temperature: 0.2,
+      max_tokens: summaryType === 'detailed' ? 1024 : (summaryType === 'bullet' ? 800 : 300),
       stream: false
     });
 
-    const rawSummary = completion.choices[0]?.message?.content || 'No summary generated';
-    const summary = removeThinkBlocks(rawSummary);
+    const summary = completion.choices[0]?.message?.content || 'No summary generated';
 
     // Step 5: Return response
     res.json({

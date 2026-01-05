@@ -228,37 +228,30 @@ router.post('/summarize', async (req, res) => {
         promptTemplate = `Summarize the following web content in a clear, organized manner:\n\nTitle: ${extracted.title}\nURL: ${url}\n\nContent:\n`;
     }
 
-    const fullPrompt = promptTemplate + content;
+    const fullPrompt = promptTemplate + content + "\n\n(Reply concisely)";
 
     // Generate AI summary with streaming
     const completion = await client.chat.completions.create({
-      model: "deepseek-ai/deepseek-r1-distill-qwen-14b",
+      model: "meta/llama-3.3-70b-instruct",
       messages: [{ role: "user", content: fullPrompt }],
-      temperature: 0.3,
-      top_p: 0.8,
-      max_tokens: 2048,
+      temperature: 0.2,
+      top_p: 0.7,
+      max_tokens: 1024,
       stream: true
     });
-
-    let fullResponse = '';
 
     for await (const chunk of completion) {
       if (chunk.choices[0]?.delta?.content) {
         const content = chunk.choices[0].delta.content;
-        fullResponse += content;
         
         // Send chunk to client
         res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
     }
-
-    // Remove think blocks and send final response
-    const cleanedSummary = removeThinkBlocks(fullResponse);
     
     const finalData = {
       content: '',
       finished: true,
-      fullResponse: cleanedSummary,
       metadata: {
         url: extracted.url,
         title: extracted.title,

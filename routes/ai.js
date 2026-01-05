@@ -166,29 +166,24 @@ router.post('/generate-note', async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
 
     const completion = await client.chat.completions.create({
-      model: "deepseek-ai/deepseek-r1-distill-qwen-14b",
-      messages: [{ role: "user", content: fullPrompt }],
-      temperature: 0.7,
-      top_p: 0.8,
-      max_tokens: 2048,
+      model: "meta/llama-3.3-70b-instruct",
+      messages: [{ role: "user", content: fullPrompt + "\n\n(Reply concisely)" }],
+      temperature: 0.2,
+      top_p: 0.7,
+      max_tokens: 1024,
       stream: true
     });
-
-    let fullResponse = '';
 
     for await (const chunk of completion) {
       if (chunk.choices[0]?.delta?.content) {
         const content = chunk.choices[0].delta.content;
-        fullResponse += content;
         
         // Send chunk to client
         res.write(`data: ${JSON.stringify({ content })}\n\n`);
       }
     }
 
-    // Remove think blocks and send final response
-    const cleanedResponse = removeThinkBlocks(fullResponse);
-    res.write(`data: ${JSON.stringify({ content: '', finished: true, fullResponse: cleanedResponse })}\n\n`);
+    res.write(`data: ${JSON.stringify({ finished: true })}\n\n`);
     res.end();
 
   } catch (error) {
@@ -240,16 +235,15 @@ router.post('/summarize', async (req, res) => {
 
     // Non-streaming response for summarization
     const completion = await client.chat.completions.create({
-      model: "deepseek-ai/deepseek-r1-distill-qwen-14b",
-      messages: [{ role: "user", content: fullPrompt }],
-      temperature: 0.3,
-      top_p: 0.8,
+      model: "meta/llama-3.3-70b-instruct",
+      messages: [{ role: "user", content: fullPrompt + "\n\n(Reply concisely)" }],
+      temperature: 0.2,
+      top_p: 0.7,
       max_tokens: 1024,
       stream: false
     });
 
-    let summary = completion.choices[0]?.message?.content || '';
-    summary = removeThinkBlocks(summary);
+    const summary = completion.choices[0]?.message?.content || '';
 
     res.json({ 
       summary,
