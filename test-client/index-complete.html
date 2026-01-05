@@ -437,6 +437,14 @@
                     <div class="card-desc">Summarize web page</div>
                     <button class="button button-primary button-small" onclick="testWebSummary()">Test</button>
                 </div>
+
+                <!-- YouTube Summary Test -->
+                <div class="card">
+                    <div class="card-icon">🎥</div>
+                    <div class="card-title">YouTube Summary</div>
+                    <div class="card-desc">Summarize YouTube video</div>
+                    <button class="button button-primary button-small" onclick="testYouTubeSummary()">Test</button>
+                </div>
             </div>
         </div>
 
@@ -733,6 +741,42 @@
                 }
             } catch (error) {
                 addResult('🌐 Web Summary Test', false, { error: error.message });
+            }
+        };
+
+        window.testYouTubeSummary = async function() {
+            addResult('🎥 YouTube Summary Test', true, { status: 'Starting...' });
+
+            try {
+                const response = await fetch(`${API_BASE}/api/youtube-summary/summarize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                        summaryType: 'concise'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    addResult('🎥 YouTube Summary Test', true, {
+                        endpoint: 'POST /api/youtube-summary/summarize',
+                        authentication: 'None (public endpoint)',
+                        videoId: data.videoId,
+                        summaryType: data.summaryType,
+                        summary: data.summary,
+                        wordCount: data.transcriptWordCount,
+                        duration: Math.round(data.videoDuration / 60) + ' minutes',
+                        status: 'Success - YouTube transcription working!'
+                    });
+                } else {
+                    addResult('🎥 YouTube Summary Test', false, data);
+                }
+            } catch (error) {
+                addResult('🎥 YouTube Summary Test', false, { error: error.message });
             }
         };
 

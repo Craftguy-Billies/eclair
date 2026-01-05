@@ -7,6 +7,7 @@ require('dotenv').config();
 // Import route modules
 const aiRoutes = require('./routes/ai');
 const webSummaryRoutes = require('./routes/web-summary');
+const youtubeSummaryRoutes = require('./routes/youtube-summary');
 const notesRoutes = require('./routes/notes');
 const workspacesRoutes = require('./routes/workspaces');
 const monitoringRoutes = require('./routes/monitoring');
@@ -88,9 +89,18 @@ const webSummaryLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const youtubeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 40, // YouTube transcription endpoints
+  message: { error: 'YouTube summary quota exceeded', message: 'Limited to 40 YouTube summaries per 15 minutes', retryAfter: 900 },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use('/', generalLimiter);
 app.use('/api/ai', aiLimiter);
 app.use('/api/web-summary', webSummaryLimiter);
+app.use('/api/youtube-summary', youtubeLimiter);
 
 // Security middleware
 app.use(securityHeaders);
@@ -116,6 +126,7 @@ app.get('/health', (req, res) => {
 // API Routes with essential security
 app.use('/api/ai', validateContent, aiRoutes); // NVIDIA key secured in environment
 app.use('/api/web-summary', validateContent, webSummaryRoutes); // No extra auth needed
+app.use('/api/youtube-summary', validateContent, youtubeSummaryRoutes); // No extra auth needed
 app.use('/api/notes', validateContent, notesRoutes); // Firebase auth handles this
 app.use('/api/workspaces', validateContent, workspacesRoutes); // Firebase auth handles this
 app.use('/api/monitoring', validateApiKey, monitoringRoutes); // Admin only
